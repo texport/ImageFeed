@@ -13,30 +13,9 @@ final class ImagesListCell: UITableViewCell {
     
     private let container = UIView()
     private let customImageView = UIImageView()
+    private let labelBackgroundView = UIView()
     private let customLabel = UILabel()
     private let customButton = UIButton(type: .custom)
-    
-//    let customImageView: UIImageView = {
-//        let imageView = UIImageView()
-//        imageView.translatesAutoresizingMaskIntoConstraints = false
-//        imageView.contentMode = .scaleAspectFill
-//        return imageView
-//    }()
-//    
-//    let customLabel: UILabel = {
-//        let label = UILabel()
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        label.textColor = .white
-//        label.text = "31 августа 2024"
-//        return label
-//    }()
-//
-//    let customButton: UIButton = {
-//        let button = UIButton(type: .custom)
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        button.setImage(UIImage(named: "Active"), for: .normal)
-//        return button
-//    }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -61,10 +40,16 @@ final class ImagesListCell: UITableViewCell {
         ])
         
         container.addSubview(customImageView)
+        container.addSubview(labelBackgroundView)
         container.addSubview(customLabel)
         container.addSubview(customButton)
         
         NSLayoutConstraint.activate([
+            labelBackgroundView.leadingAnchor.constraint(equalTo: customLabel.leadingAnchor, constant: -10),
+            labelBackgroundView.trailingAnchor.constraint(equalTo: customLabel.trailingAnchor, constant: 10),
+            labelBackgroundView.topAnchor.constraint(equalTo: customLabel.topAnchor, constant: -5),
+            labelBackgroundView.bottomAnchor.constraint(equalTo: customLabel.bottomAnchor, constant: 5),
+            
             customImageView.topAnchor.constraint(equalTo: container.topAnchor),
             customImageView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
             customImageView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
@@ -85,6 +70,8 @@ final class ImagesListCell: UITableViewCell {
         
         customImageView.layer.cornerRadius = 16
         customImageView.clipsToBounds = true
+        
+        setupGradientForLabel()
     }
     
     func configure(imageName: String, labelText: String, isLiked: Bool) {
@@ -101,7 +88,29 @@ final class ImagesListCell: UITableViewCell {
         customButton.setImage(buttonImage, for: .normal)
     }
 
+    private func setupGradientForLabel() {
+        labelBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        labelBackgroundView.layer.cornerRadius = 5 // радиус скругления
+        labelBackgroundView.clipsToBounds = true
+        
+        // Создание градиентного слоя
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [UIColor.red.cgColor, UIColor.orange.cgColor] // градиента от красного к оранжевому
+        gradientLayer.locations = [0.0, 1.0] // Начальная и конечная точки градиента
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5) // Горизонтальный градиент
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        
+        // размер градиента будет настраивается в layoutSubviews
+        labelBackgroundView.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
+        
+        if let gradientLayer = labelBackgroundView.layer.sublayers?.first as? CAGradientLayer {
+            gradientLayer.frame = labelBackgroundView.bounds
+        }
+        
+        labelBackgroundView.layer.sublayers?.first?.frame = labelBackgroundView.bounds
     }
 }
