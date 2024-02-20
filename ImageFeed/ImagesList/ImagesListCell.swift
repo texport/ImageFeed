@@ -12,31 +12,35 @@ final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
     
     private let container = UIView()
+    private let customImageView = UIImageView()
+    private let customLabel = UILabel()
+    private let customButton = UIButton(type: .custom)
     
-    let customImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFill
-        return imageView
-    }()
-    
-    let customLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .white
-        label.text = "31 августа 2024"
-        return label
-    }()
-
-    let customButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(UIImage(named: "Active"), for: .normal)
-        return button
-    }()
+//    let customImageView: UIImageView = {
+//        let imageView = UIImageView()
+//        imageView.translatesAutoresizingMaskIntoConstraints = false
+//        imageView.contentMode = .scaleAspectFill
+//        return imageView
+//    }()
+//    
+//    let customLabel: UILabel = {
+//        let label = UILabel()
+//        label.translatesAutoresizingMaskIntoConstraints = false
+//        label.textColor = .white
+//        label.text = "31 августа 2024"
+//        return label
+//    }()
+//
+//    let customButton: UIButton = {
+//        let button = UIButton(type: .custom)
+//        button.translatesAutoresizingMaskIntoConstraints = false
+//        button.setImage(UIImage(named: "Active"), for: .normal)
+//        return button
+//    }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        self.backgroundColor = UIColor(named: "YP Black")
         setupViews()
     }
         
@@ -82,9 +86,22 @@ final class ImagesListCell: UITableViewCell {
         customImageView.layer.cornerRadius = 16
         customImageView.clipsToBounds = true
     }
+    
+    func configure(imageName: String, labelText: String, isLiked: Bool) {
+        customImageView.translatesAutoresizingMaskIntoConstraints = false
+        customImageView.contentMode = .scaleAspectFill
+        customImageView.image = UIImage(named: imageName)
+        
+        customLabel.translatesAutoresizingMaskIntoConstraints = false
+        customLabel.textColor = .white
+        customLabel.text = labelText
+        
+        customButton.translatesAutoresizingMaskIntoConstraints = false
+        let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
+        customButton.setImage(buttonImage, for: .normal)
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.backgroundColor = UIColor(named: "YP Black")
     }
 }

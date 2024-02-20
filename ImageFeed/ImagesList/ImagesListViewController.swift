@@ -36,12 +36,7 @@ class ImagesListViewController: UIViewController {
             return
         }
         
-        // задаем картинку
-        cell.customImageView.image = UIImage(named: imageName)
-        // задаем дату в лейбл
-        cell.customLabel.text = dateFormatter.string(from: Date())
-        // задаем состояние лайка и сам лайк в кнопку
-        indexPath.row % 2 == 0 ? cell.customButton.setImage(UIImage(named: "Active"), for: .normal) : cell.customButton.setImage(UIImage(named: "No Active"), for: .normal)
+        cell.configure(imageName: imageName, labelText: dateFormatter.string(from: Date()), isLiked: indexPath.row % 2 == 0)
     }
 }
 
