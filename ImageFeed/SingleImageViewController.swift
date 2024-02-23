@@ -10,8 +10,8 @@ import UIKit
 class SingleImageViewController: UIViewController {
     var image: UIImage? {
         didSet {
-            guard isViewLoaded else { return } // 1
-            imageView.image = image // 2
+            guard isViewLoaded else { return }
+            imageView.image = image
         }
     }
     
@@ -29,7 +29,7 @@ class SingleImageViewController: UIViewController {
         scrollView.addGestureRecognizer(doubleTapGestureRecognizer)
         
         scrollView.delegate = self
-        imageView.contentMode = .scaleAspectFit // пропорции изображения
+        imageView.contentMode = .scaleAspectFit
         
         if let image = image {
             imageView.image = image
@@ -73,10 +73,8 @@ class SingleImageViewController: UIViewController {
     }
     
     @IBAction func didTapShareButton(_ sender: Any) {
-        // Проверяем, есть ли изображение для деления
         guard let image = imageView.image else { return }
 
-        // Создаем UIActivityViewController
         let activityViewController = UIActivityViewController(activityItems: [image],
                                                               applicationActivities: nil)
 
@@ -84,7 +82,6 @@ class SingleImageViewController: UIViewController {
         activityViewController.excludedActivityTypes = [UIActivity.ActivityType.addToReadingList,
                                                         UIActivity.ActivityType.postToVimeo]
 
-        // Показываем UIActivityViewController
         self.present(activityViewController, animated: true, completion: nil)
     }
 }

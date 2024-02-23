@@ -11,7 +11,7 @@ class ImagesListViewController: UIViewController {
     @IBOutlet private var tableView: UITableView!
     
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
-    let images: [String] = (0..<20).map { "\($0)" } // Создает массив строк от "0" до "19"
+    let images: [String] = (0..<20).map { "\($0)" }
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -32,7 +32,6 @@ class ImagesListViewController: UIViewController {
         let imageName = images[indexPath.row]
         
         guard let image = UIImage(named: imageName) else {
-            // Если изображение с таким именем не найдено, прекращаем конфигурацию ячейки
             print("Изображение с именем \(imageName) не найдено.")
             return
         }
@@ -41,20 +40,19 @@ class ImagesListViewController: UIViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showSingleImageSegueIdentifier { // 1
+        if segue.identifier == showSingleImageSegueIdentifier {
             guard
-                let viewController = segue.destination as? SingleImageViewController, // 2
-                let indexPath = sender as? IndexPath // 3
+                let viewController = segue.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
             else {
-                assertionFailure("Invalid segue destination") // 4
+                assertionFailure("Invalid segue destination")
                 return
             }
             
-            let image = UIImage(named: images[indexPath.row]) // 5
-            //viewController.imageView.image = image // 6
+            let image = UIImage(named: images[indexPath.row])
             viewController.image = image
         } else {
-            super.prepare(for: segue, sender: sender) // 7
+            super.prepare(for: segue, sender: sender)
         }
     }
 }
