@@ -10,7 +10,8 @@ import UIKit
 class ImagesListViewController: UIViewController {
     @IBOutlet private var tableView: UITableView!
     
-    let images: [String] = (0..<20).map { "\($0)" } // Создает массив строк от "0" до "19"
+    private let showSingleImageSegueIdentifier = "ShowSingleImage"
+    let images: [String] = (0..<20).map { "\($0)" }
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -31,18 +32,35 @@ class ImagesListViewController: UIViewController {
         let imageName = images[indexPath.row]
         
         guard let image = UIImage(named: imageName) else {
-            // Если изображение с таким именем не найдено, прекращаем конфигурацию ячейки
             print("Изображение с именем \(imageName) не найдено.")
             return
         }
         
         cell.configure(imageName: imageName, labelText: dateFormatter.string(from: Date()), isLiked: indexPath.row % 2 == 0)
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == showSingleImageSegueIdentifier {
+            guard
+                let viewController = segue.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
+            else {
+                assertionFailure("Invalid segue destination")
+                return
+            }
+            
+            let image = UIImage(named: images[indexPath.row])
+            viewController.image = image
+        } else {
+            super.prepare(for: segue, sender: sender)
+        }
+    }
 }
 
 extension ImagesListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
