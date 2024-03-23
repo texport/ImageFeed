@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SplashViewController: UIViewController, AuthViewControllerDelegate {
+final class SplashViewController: UIViewController, AuthViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.clear
@@ -19,16 +19,11 @@ class SplashViewController: UIViewController, AuthViewControllerDelegate {
     }
     
     private func decideNextViewController() {
-        if isAuthenticated() {
+        if OAuth2TokenStorage().token != nil {
             presentGallery()
         } else {
             presentAuth()
         }
-    }
-
-    private func isAuthenticated() -> Bool {
-        // Проверьте, сохранены ли данные авторизации, например:
-        return OAuth2TokenStorage().token != nil
     }
     
     func didAuthenticate() {

@@ -42,11 +42,10 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
                 case .success(let token):
                     let tokenStorage = OAuth2TokenStorage()
                     tokenStorage.token = token
-                    print("Токен получен \(token)")
-                    // Закрываем WebViewViewController и уведомляем делегата о успешной аутентификации
-                    self?.dismiss(animated: true, completion: {
+                    
+                    self?.dismiss(animated: true) {
                         self?.delegate?.didAuthenticate()
-                    })
+                    }
                 case .failure(let error):
                     print("Ошибка получения токена: \(error)")
                     // Показать ошибку пользователю
