@@ -1,18 +1,14 @@
-//
-//  OAuth2Service.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 21.03.2024.
-//
-
 import UIKit
 
 final class OAuth2Service {
     static let shared = OAuth2Service()
-    
+
+    private let tokenQueue = DispatchQueue(label: "com.imagefeed.oauth2.tokenQueue")
+    private var currentTask: URLSessionDataTask?
+
     private init() {}
-    
-    // формируем ссылку для запроса токена
+
+    // Формируем ссылку для запроса токена
     private func createTokenRequest(withCode code: String) -> URLRequest? {
         guard var urlComponents = URLComponents(string: Constants.tokenURLString) else { return nil }
         
@@ -31,54 +27,29 @@ final class OAuth2Service {
         
         return request
     }
-    
-    // запрашиваем токен
+
+    // Запрашиваем токен
     func fetchOAuthToken(withCode code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let request = createTokenRequest(withCode: code) else {
-            completion(.failure(NSError(domain: "OAuth2Service", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid request."])))
-            return
-        }
-        
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if let error = error {
+        tokenQueue.async {
+            guard let request = self.createTokenRequest(withCode: code) else {
                 DispatchQueue.main.async {
-                    print("Сетевая ошибка: \(error.localizedDescription)")
-                    completion(.failure(error))
+                    completion(.failure(NSError(domain: "OAuth2Service", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid request."])))
                 }
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    completion(.failure(NSError(domain: "OAuth2Service", code: 1, userInfo: [NSLocalizedDescriptionKey: "No response."])))
-                }
-                return
-            }
+            self.currentTask?.cancel() // Отменяем предыдущий запрос, если таковой есть
             
-            guard (200...299).contains(httpResponse.statusCode), let data = data else {
-                DispatchQueue.main.async {
-                    completion(.failure(NSError(domain: "OAuth2Service", code: 2, userInfo: [NSLocalizedDescriptionKey: "HTTP Error: \(httpResponse.statusCode)"])))
-                }
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                let responseBody = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(responseBody.accessToken))
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
-                        print("Ошибка сервиса Unsplash: HTTP статус \(httpResponse.statusCode)")
-                    }
-                    print("Ошибка декодирования: \(error.localizedDescription)")
+            let task = URLSession.shared.decodableTask(with: request) { (result: Result<OAuthTokenResponseBody, Error>) in
+                switch result {
+                case .success(let tokenResponse):
+                    completion(.success(tokenResponse.accessToken))
+                case .failure(let error):
                     completion(.failure(error))
                 }
             }
+            self.currentTask = task // Сохраняем ссылку на текущий таск
+            task.resume()
         }
-        task.resume()
     }
 }

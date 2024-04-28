@@ -5,6 +5,7 @@
 //  Created by Sergey Ivanov on 20.02.2024.
 //
 
+import Kingfisher
 import UIKit
 
 final class ProfileViewController: UIViewController {
@@ -22,12 +23,81 @@ final class ProfileViewController: UIViewController {
         startSetupTagNameProfile()
         startSetupDescriptionProfile()
         startSetupExitButton()
+        updateProfileDetails()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateProfileImage(_:)), name: .didFetchProfileImage, object: nil)
+        
+        if let avatarURL = ProfileImageService.shared.avatarURL {
+            loadImageFromURL(avatarURL)	
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // Установка скругленных углов для изображения
+        profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
+        profileImageView.layer.masksToBounds = true
+    }
+
+    private func updateProfileDetails() {
+        guard let profileData = ProfileService.shared.profile else {
+            print("Данные профиля не загружены")
+            return
+        }
+        
+        nameLabel.text = profileData.name
+        usernameLabel.text = profileData.loginName
+        descriptionLabel.text = profileData.bio
+        // Если у вас есть URL для изображения профиля, загрузите его здесь
+    }
+    
+    private func loadImageFromURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else {
+            print("Не удалось извлечь URL аватара из уведомления.")
+            return
+        }
+        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))])
+    }
+
+    @objc private func updateProfileImage(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let avatarURLString = userInfo["avatarURL"] as? String,
+              let url = URL(string: avatarURLString) else {
+            print("Не удалось извлечь URL аватара из уведомления.")
+            return
+        }
+        
+        print("Получен URL аватара: \(avatarURLString)")
+        // Использование Kingfisher для загрузки изображения
+        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))]) {
+            result in
+            switch result {
+            case .success(let imageResult):
+                print("Аватарка успешно загружена: \(imageResult.image)")
+            case .failure(let error):
+                print("Ошибка загрузки аватарки: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     private func startSetupProfileImage() {
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         profileImageView.clipsToBounds = true
         profileImageView.contentMode = .scaleAspectFill
+        profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
+        //profileImageView.contentMode = .scaleAspectFit
         profileImageView.image = UIImage(named: "Photo")
         
         view.addSubview(profileImageView)

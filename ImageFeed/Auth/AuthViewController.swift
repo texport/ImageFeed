@@ -5,6 +5,7 @@
 //  Created by Sergey Ivanov on 11.03.2024.
 //
 
+import ProgressHUD
 import UIKit
 
 final class AuthViewController: UIViewController, WebViewViewControllerDelegate {
@@ -36,24 +37,32 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        UIBlockingProgressHUD.show()
         OAuth2Service.shared.fetchOAuthToken(withCode: code) { [weak self] result in
             DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
                 switch result {
                 case .success(let token):
                     let tokenStorage = OAuth2TokenStorage()
                     tokenStorage.token = token
-                    
+
                     self?.dismiss(animated: true) {
                         self?.delegate?.didAuthenticate()
                     }
                 case .failure(let error):
                     print("Ошибка получения токена: \(error)")
-                    // Показать ошибку пользователю
+                    self?.showErrorAlert("Не удалось войти в систему", message: "Пожалуйста, попробуйте еще раз.")
                 }
             }
         }
     }
 
+    private func showErrorAlert(_ title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         dismiss(animated: true)
     }

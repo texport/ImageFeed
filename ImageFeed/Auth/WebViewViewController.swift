@@ -1,12 +1,6 @@
-//
-//  WebViewViewController.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 12.03.2024.
-//
-
 import UIKit
 import WebKit
+import Combine
 
 final class WebViewViewController: UIViewController, WKNavigationDelegate {
     weak var delegate: WebViewViewControllerDelegate?
@@ -14,11 +8,25 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     @IBOutlet weak var webView: WKWebView!
     @IBOutlet weak var progressView: UIProgressView!
     
+    private var progressObserver: AnyCancellable?
+
     override func viewDidLoad() {
+        super.viewDidLoad()
         webView.navigationDelegate = self
+        setupProgressObserver()
         loadAuthView()
     }
-    
+
+    private func setupProgressObserver() {
+        // Настройка слежения за свойством estimatedProgress
+        progressObserver = webView.publisher(for: \.estimatedProgress)
+            .receive(on: DispatchQueue.main) // Убедимся, что UI обновляется в главном потоке
+            .sink { [weak self] progress in
+                self?.progressView.progress = Float(progress)
+                self?.progressView.isHidden = progress == 1.0 // Скрываем, когда загрузка завершена
+            }
+    }
+
     private func loadAuthView() {
         guard var urlComponent = URLComponents(string: Constants.unsplashAuthorizeURLString) else {
             return
@@ -38,19 +46,15 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
         let request = URLRequest(url: url)
         webView.load(request)
     }
-    
+
     @IBAction func backButtonTapped(_ sender: Any) {
         delegate?.webViewViewControllerDidCancel(self)
     }
-}
 
-extension WebViewViewController {
-    func webView(
-        _ webView: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
-    ) {
+    // Навигационные делегаты
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let code = code(from: navigationAction) {
+            UIBlockingProgressHUD.show()
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
             decisionHandler(.cancel)
             return
@@ -60,49 +64,19 @@ extension WebViewViewController {
     }
     
     private func code(from navigationAction: WKNavigationAction) -> String? {
-        if
-            let url = navigationAction.request.url,
-            let urlComponents = URLComponents(string: url.absoluteString),
-            urlComponents.path == "/oauth/authorize/native",
-            let items = urlComponents.queryItems,
-            let codeItem = items.first(where: { $0.name == "code" })
-        {
+        if let url = navigationAction.request.url,
+           let urlComponents = URLComponents(string: url.absoluteString),
+           urlComponents.path == "/oauth/authorize/native",
+           let items = urlComponents.queryItems,
+           let codeItem = items.first(where: { $0.name == "code" }) {
             return codeItem.value
         } else {
             return nil
         }
     }
-}
 
-extension WebViewViewController {
-    override func viewWillAppear(_ animated: Bool) {
-        webView.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: nil)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        webView.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress))
-    }
-    
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        if keyPath == #keyPath(WKWebView.estimatedProgress) {
-            updateProgress()
-        } else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-        }
-    }
-
-    private func updateProgress() {
-        progressView.progress = Float(webView.estimatedProgress)
-        progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
+    // Убедимся, что подписка будет удалена, когда контроллер будет деаллоцирован
+    deinit {
+        progressObserver?.cancel()
     }
 }
