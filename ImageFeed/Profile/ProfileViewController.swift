@@ -88,6 +88,20 @@ final class ProfileViewController: UIViewController {
         }
     }
     
+    @objc private func handleLogoutTap() {
+        // Удаление токена из хранилища
+        let tokenStorage = OAuth2TokenStorage()
+        tokenStorage.token = nil
+        print("Вы вышли из системы, токен удалён")
+
+        // Перезагрузка экрана входа через SplashViewController, созданного программно
+        if let window = UIApplication.shared.windows.first {
+            let splashViewController = SplashViewController() // Создание SplashViewController программно
+            window.rootViewController = splashViewController
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+        }
+    }
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -158,6 +172,7 @@ final class ProfileViewController: UIViewController {
     private func startSetupExitButton() {
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         logoutButton.setImage(UIImage(named: "Exit"), for: .normal)
+        logoutButton.addTarget(self, action: #selector(handleLogoutTap), for: .touchUpInside) // Добавление обработчика нажатия
         
         view.addSubview(logoutButton)
         

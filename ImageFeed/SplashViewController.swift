@@ -13,25 +13,26 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .clear
+        view.backgroundColor = .ypBlack
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.image = UIImage(named: "Logo_of_Unsplash")
+        imageView.image = UIImage(named: "SplashScreenImage")
         view.addSubview(imageView)
         
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 100),
-            imageView.heightAnchor.constraint(equalToConstant: 100)
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        print("Splash screen appeared")
         if let token = tokenStorage.token {
+            print("Token is available, fetching profile...")
             fetchProfile(token: token)
         } else {
+            print("No token available, presenting auth...")
             presentAuth()
         }
     }
@@ -54,27 +55,31 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
     }
     
     func didAuthenticate() {
+        print("User did authenticate, presenting gallery...")
         presentGallery()
     }
     
     private func presentGallery() {
-        // Создаем экземпляр TabBarController
         let tabBarController = TabBarController()
-        
-        // Настраиваем стиль презентации
         tabBarController.modalPresentationStyle = .fullScreen
-        
-        // Показываем TabBarController
         present(tabBarController, animated: false, completion: nil)
     }
     
     private func presentAuth() {
-        if let authNavigationController = storyboard?.instantiateViewController(withIdentifier: "AuthNavigationController") as? UINavigationController,
-           let authViewController = authNavigationController.viewControllers.first as? AuthViewController {
-            authViewController.delegate = self  // Устанавливаем SplashViewController в качестве делегата
-            authNavigationController.modalPresentationStyle = .fullScreen // Задаем стиль презентации
-            present(authNavigationController, animated: false, completion: nil)
+        print("Attempting to present auth controller...")
+        DispatchQueue.main.async {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let authNavigationController = storyboard.instantiateViewController(withIdentifier: "AuthNavigationController") as? UINavigationController,
+               let authViewController = authNavigationController.topViewController as? AuthViewController {
+                authViewController.delegate = self
+                print("Delegate is set: \(self)")
+                authNavigationController.modalPresentationStyle = .fullScreen
+                self.present(authNavigationController, animated: true, completion: {
+                    print("Auth controller presented")
+                })
+            } else {
+                print("Could not instantiate AuthNavigationController from storyboard")
+            }
         }
     }
 }
-

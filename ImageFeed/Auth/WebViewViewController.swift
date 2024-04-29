@@ -54,15 +54,15 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     // Навигационные делегаты
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let code = code(from: navigationAction) {
-            UIBlockingProgressHUD.show()
+            print("Received authorization code: \(code)")
+            print("Delegate is: \(String(describing: delegate))")
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
             decisionHandler(.cancel)
-            return
         } else {
             decisionHandler(.allow)
         }
     }
-    
+
     private func code(from navigationAction: WKNavigationAction) -> String? {
         if let url = navigationAction.request.url,
            let urlComponents = URLComponents(string: url.absoluteString),
@@ -78,5 +78,6 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     // Убедимся, что подписка будет удалена, когда контроллер будет деаллоцирован
     deinit {
         progressObserver?.cancel()
+        print("WebViewViewController is being deinitialized")
     }
 }
