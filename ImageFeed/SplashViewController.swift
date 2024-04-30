@@ -8,7 +8,6 @@
 import UIKit
 
 final class SplashViewController: UIViewController, AuthViewControllerDelegate {
-    private let tokenStorage = OAuth2TokenStorage()
     private let imageView = UIImageView()
 
     override func viewDidLoad() {
@@ -27,12 +26,9 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print("Splash screen appeared")
-        if let token = tokenStorage.token {
-            print("Token is available, fetching profile...")
+        if let token = OAuth2TokenStorage.shared.token {
             fetchProfile(token: token)
         } else {
-            print("No token available, presenting auth...")
             presentAuth()
         }
     }
@@ -44,16 +40,16 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
                 UIBlockingProgressHUD.dismiss()
                 switch result {
                 case .success(let profileData):
+                    NotificationCenter.default.post(name: .didFetchProfileData, object: nil, userInfo: ["profileData": profileData])
                     self?.presentGallery()
-                    ProfileImageService.shared.fetchProfileImageURL(username: profileData.username) { _ in }
-                case .failure:
-                // TODO: Показать ошибку, если профиль не может быть загружен
+                case .failure(let error):
+                    print("[ProfileService]: Ошибка загрузки профиля - \(error.localizedDescription)")
                     self?.presentAuth()
                 }
             }
         }
     }
-    
+
     func didAuthenticate() {
         print("User did authenticate, presenting gallery...")
         presentGallery()

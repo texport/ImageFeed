@@ -6,17 +6,17 @@ final class UIBlockingProgressHUD {
         return UIApplication.shared.windows.first
     }
 
-    static var isVisible = false // Добавляем свойство для отслеживания видимости
+    static var isVisible = false
 
     static func show() {
         window?.isUserInteractionEnabled = false
         ProgressHUD.animate()
-        isVisible = true // Устанавливаем флаг видимости в true
+        isVisible = true
     }
     
     static func dismiss() {
         window?.isUserInteractionEnabled = true
         ProgressHUD.dismiss()
-        isVisible = false // Сбрасываем флаг видимости
+        isVisible = false
     }
 }

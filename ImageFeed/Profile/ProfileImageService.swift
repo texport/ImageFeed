@@ -2,7 +2,6 @@ import UIKit
 
 final class ProfileImageService {
     static let shared = ProfileImageService()
-    private let tokenStorage = OAuth2TokenStorage()
     private(set) var avatarURL: String?
     private var isFetching = false
 
@@ -27,7 +26,7 @@ final class ProfileImageService {
             return
         }
 
-        guard let token = tokenStorage.token else {
+        guard let token = OAuth2TokenStorage.shared.token else {
             completion(.failure(NSError(domain: "ProfileImageService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication required."])))
             return
         }
@@ -74,4 +73,5 @@ final class ProfileImageService {
 
 extension Notification.Name {
     static let didFetchProfileImage = Notification.Name("didFetchProfileImage")
+    static let didFetchProfileData = Notification.Name("didFetchProfileData")
 }

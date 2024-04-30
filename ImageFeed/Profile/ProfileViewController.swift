@@ -29,6 +29,7 @@ final class ProfileViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         NotificationCenter.default.addObserver(self, selector: #selector(updateProfileImage(_:)), name: .didFetchProfileImage, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateProfileData(_:)), name: .didFetchProfileData, object: nil)
         
         if let avatarURL = ProfileImageService.shared.avatarURL {
             loadImageFromURL(avatarURL)	
@@ -46,17 +47,49 @@ final class ProfileViewController: UIViewController {
         profileImageView.layer.cornerRadius = profileImageView.frame.height / 2
         profileImageView.layer.masksToBounds = true
     }
-
+    
     private func updateProfileDetails() {
         guard let profileData = ProfileService.shared.profile else {
             print("Данные профиля не загружены")
             return
         }
-        
+
         nameLabel.text = profileData.name
         usernameLabel.text = profileData.loginName
         descriptionLabel.text = profileData.bio
-        // Если у вас есть URL для изображения профиля, загрузите его здесь
+
+        // Загрузка изображения профиля, если URL доступен
+        if let urlString = profileData.avatarURL, let url = URL(string: urlString) {
+            profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))])
+        }
+    }
+
+    private func fetchProfileData() {
+        guard let token = OAuth2TokenStorage.shared.token else {
+            print("Токен доступа не найден")
+            return
+        }
+        ProfileService.shared.fetchProfile(token) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let profileData):
+                    self?.updateProfileDetails()
+                case .failure(let error):
+                    print("Ошибка при загрузке данных профиля: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    @objc private func updateProfileData(_ notification: Notification) {
+        if let profileData = notification.userInfo?["profileData"] as? ProfileUIData {
+            nameLabel.text = profileData.name
+            usernameLabel.text = profileData.loginName
+            descriptionLabel.text = profileData.bio
+            if let urlString = profileData.avatarURL, let url = URL(string: urlString) {
+                profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))])
+            }
+        }
     }
     
     private func loadImageFromURL(_ urlString: String) {
@@ -67,6 +100,27 @@ final class ProfileViewController: UIViewController {
         profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))])
     }
 
+//    @objc private func updateProfileImage(_ notification: Notification) {
+//        guard let userInfo = notification.userInfo,
+//              let avatarURLString = userInfo["avatarURL"] as? String,
+//              let url = URL(string: avatarURLString) else {
+//            print("Не удалось извлечь URL аватара из уведомления.")
+//            return
+//        }
+//        
+//        print("Получен URL аватара: \(avatarURLString)")
+//        // Использование Kingfisher для загрузки изображения
+//        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))]) {
+//            result in
+//            switch result {
+//            case .success(let imageResult):
+//                print("Аватарка успешно загружена: \(imageResult.image)")
+//            case .failure(let error):
+//                print("Ошибка загрузки аватарки: \(error.localizedDescription)")
+//            }
+//        }
+//    }
+    
     @objc private func updateProfileImage(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let avatarURLString = userInfo["avatarURL"] as? String,
@@ -76,21 +130,13 @@ final class ProfileViewController: UIViewController {
         }
         
         print("Получен URL аватара: \(avatarURLString)")
-        // Использование Kingfisher для загрузки изображения
-        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))]) {
-            result in
-            switch result {
-            case .success(let imageResult):
-                print("Аватарка успешно загружена: \(imageResult.image)")
-            case .failure(let error):
-                print("Ошибка загрузки аватарки: \(error.localizedDescription)")
-            }
-        }
+        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "default-avatar"), options: [.transition(.fade(0.2))])
     }
+
     
     @objc private func handleLogoutTap() {
         // Удаление токена из хранилища
-        let tokenStorage = OAuth2TokenStorage()
+        let tokenStorage = OAuth2TokenStorage.shared
         tokenStorage.token = nil
         print("Вы вышли из системы, токен удалён")
 

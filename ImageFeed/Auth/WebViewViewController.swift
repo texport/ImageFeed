@@ -50,13 +50,12 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     @IBAction func backButtonTapped(_ sender: Any) {
         delegate?.webViewViewControllerDidCancel(self)
     }
-
-    // Навигационные делегаты
+    
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let code = code(from: navigationAction) {
             print("Received authorization code: \(code)")
-            print("Delegate is: \(String(describing: delegate))")
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
+            // Не закрывайте WebView здесь. Закрытие произойдет после обработки в AuthViewController.
             decisionHandler(.cancel)
         } else {
             decisionHandler(.allow)
