@@ -1,10 +1,3 @@
-//
-//  ViewController.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 06.02.2024.
-//
-
 import UIKit
 
 final class ImagesListViewController: UIViewController {
@@ -32,11 +25,12 @@ final class ImagesListViewController: UIViewController {
         let imageName = images[indexPath.row]
         
         guard let image = UIImage(named: imageName) else {
-            print("Изображение с именем \(imageName) не найдено.")
+            print("[ImagesListViewController]: Ошибка загрузки - Изображение с именем \(imageName) не найдено.")
             return
         }
         
         cell.configure(imageName: imageName, labelText: dateFormatter.string(from: Date()), isLiked: indexPath.row % 2 == 0)
+        print("[ImagesListViewController]: Информация - Конфигурация ячейки для изображения с индексом \(indexPath.row)")
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -51,42 +45,32 @@ final class ImagesListViewController: UIViewController {
             
             let image = UIImage(named: images[indexPath.row])
             viewController.image = image
+            print("[ImagesListViewController]: Информация - Переход по segue с идентификатором \(showSingleImageSegueIdentifier) для изображения с индексом \(indexPath.row)")
         } else {
             super.prepare(for: segue, sender: sender)
         }
     }
 }
 
-extension ImagesListViewController: UITableViewDelegate {
+extension ImagesListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        // Задаем базовые отступы
-        let verticalPadding: CGFloat = 16 + 16 // отступ сверху + отступ снизу
+        let verticalPadding: CGFloat = 16 + 16
         
-        // Получаем изображение
         guard let image = UIImage(named: images[indexPath.row]) else {
-            return verticalPadding + 200 // Возвращаем высоту по умолчанию, если изображение не найдено
+            return verticalPadding + 200
         }
         
-        // Рассчитываем целевую ширину ImageView, исходя из ширины tableView
-        let targetWidth = tableView.bounds.width - (16 + 16) // Отнимаем левый и правый отступы ячейки
-        
-        // Вычисляем масштаб, чтобы сохранить пропорции изображения
+        let targetWidth = tableView.bounds.width - (16 + 16)
         let scaleRatio = targetWidth / image.size.width
-        
-        // Рассчитываем высоту ImageView, сохраняя пропорции изображения
         let imageViewHeight = image.size.height * scaleRatio
-        
-        // Возвращаем рассчитанную высоту плюс отступы
         return imageViewHeight + verticalPadding
     }
-}
-
-extension ImagesListViewController: UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return images.count
     }

@@ -17,16 +17,19 @@ final class ProfileImageService {
     
     func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void) {
         guard !isFetching else {
+            print("[ProfileImageService]: Ошибка - Запрос на получение изображения уже выполняется.")
             completion(.failure(NSError(domain: "ProfileImageService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Already fetching."])))
             return
         }
 
         if let cachedURL = avatarURL {
+            print("[ProfileImageService]: Информация - URL изображения получен из кэша.")
             completion(.success(cachedURL))
             return
         }
 
         guard let token = OAuth2TokenStorage.shared.token else {
+            print("[ProfileImageService]: Ошибка - Требуется аутентификация для получения URL изображения.")
             completion(.failure(NSError(domain: "ProfileImageService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Authentication required."])))
             return
         }
@@ -35,6 +38,7 @@ final class ProfileImageService {
 
         guard let request = createProfileImageRequest(username: username, token: token) else {
             isFetching = false
+            print("[ProfileImageService]: Ошибка - Не удалось создать запрос на получение URL изображения.")
             completion(.failure(NSError(domain: "ProfileImageService", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to create request."])))
             return
         }
@@ -45,14 +49,13 @@ final class ProfileImageService {
             case .success(let userResult):
                 let avatarURLString = userResult.profile_image.large
                 self?.avatarURL = avatarURLString // Cache the URL
-
-                // Логирование перед отправкой уведомления
-                print("Отправка уведомления с URL аватара: \(avatarURLString)")
-
+                
                 NotificationCenter.default.post(name: .didFetchProfileImage, object: nil, userInfo: ["avatarURL": avatarURLString])
+                
+                print("[ProfileImageService]: Информация - URL аватара успешно получен и отправлен в уведомлении.")
                 completion(.success(avatarURLString))
             case .failure(let error):
-                print("Ошибка загрузки изображения профиля: \(error.localizedDescription)")
+                print("[ProfileImageService]: Ошибка - Не удалось загрузить URL аватара: \(error.localizedDescription)")
                 completion(.failure(error))
             }
         }
@@ -62,6 +65,7 @@ final class ProfileImageService {
     private func createProfileImageRequest(username: String, token: String) -> URLRequest? {
         let urlString = "https://api.unsplash.com/users/\(username)"
         guard let url = URL(string: urlString) else {
+            print("[ProfileImageService]: Ошибка - Некорректный URL.")
             return nil
         }
         

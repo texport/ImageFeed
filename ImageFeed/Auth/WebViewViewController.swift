@@ -18,12 +18,11 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     }
 
     private func setupProgressObserver() {
-        // Настройка слежения за свойством estimatedProgress
         progressObserver = webView.publisher(for: \.estimatedProgress)
-            .receive(on: DispatchQueue.main) // Убедимся, что UI обновляется в главном потоке
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] progress in
                 self?.progressView.progress = Float(progress)
-                self?.progressView.isHidden = progress == 1.0 // Скрываем, когда загрузка завершена
+                self?.progressView.isHidden = progress == 1.0
             }
     }
 
@@ -53,9 +52,8 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let code = code(from: navigationAction) {
-            print("Received authorization code: \(code)")
+            print("[WebViewViewController]: Информация - Получен код авторизации: \(code)")
             delegate?.webViewViewController(self, didAuthenticateWithCode: code)
-            // Не закрывайте WebView здесь. Закрытие произойдет после обработки в AuthViewController.
             decisionHandler(.cancel)
         } else {
             decisionHandler(.allow)
@@ -74,9 +72,8 @@ final class WebViewViewController: UIViewController, WKNavigationDelegate {
         }
     }
 
-    // Убедимся, что подписка будет удалена, когда контроллер будет деаллоцирован
     deinit {
         progressObserver?.cancel()
-        print("WebViewViewController is being deinitialized")
+        print("[WebViewViewController]: Информация - WebViewViewController деинициализируется")
     }
 }

@@ -1,10 +1,3 @@
-//
-//  URLSession+Decodable.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 28.04.2024.
-//
-
 import UIKit
 
 extension URLSession {
@@ -16,8 +9,7 @@ extension URLSession {
         let task = dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    // Логирование сетевой ошибки
-                    print("[decodableTask]: Networking Error - \(error.localizedDescription)")
+                    print("[URLSession+Decodable]: Ошибка сети - \(error.localizedDescription)")
                     completion(.failure(error))
                     return
                 }
@@ -25,10 +17,9 @@ extension URLSession {
                 guard let httpResponse = response as? HTTPURLResponse,
                       (200...299).contains(httpResponse.statusCode),
                       let data = data else {
-                    // Логирование ошибки сервера
                     let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-                    print("[decodableTask]: HTTP Error - код ошибки \(statusCode)")
-                    completion(.failure(NetworkError.responseUnsuccessful))
+                    print("[URLSession+Decodable]: Ошибка HTTP - Код ошибки \(statusCode)")
+                    completion(.failure(NetworkError.responseUnsuccessful(description: "Сервер вернул код ответа \(statusCode).")))
                     return
                 }
 
@@ -36,9 +27,8 @@ extension URLSession {
                     let decodedObject = try decoder.decode(T.self, from: data)
                     completion(.success(decodedObject))
                 } catch {
-                    // Логирование ошибки декодирования
-                    print("Ошибка декодирования: \(error.localizedDescription), Данные: \(String(data: data, encoding: .utf8) ?? "")")
-                    completion(.failure(error))
+                    print("[URLSession+Decodable]: Ошибка декодирования - \(error.localizedDescription), Данные: \(String(data: data, encoding: .utf8) ?? "N/A")")
+                    completion(.failure(NetworkError.jsonDecodingFailure(description: "Ошибка при декодировании JSON: \(error.localizedDescription).")))
                 }
             }
         }
@@ -47,7 +37,7 @@ extension URLSession {
 }
 
 enum NetworkError: Error {
-    case responseUnsuccessful
-    case invalidData
-    case jsonDecodingFailure
+    case responseUnsuccessful(description: String)
+    case invalidData(description: String)
+    case jsonDecodingFailure(description: String)
 }

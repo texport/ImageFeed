@@ -1,10 +1,3 @@
-//
-//  SplashViewController.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 22.03.2024.
-//
-
 import UIKit
 
 final class SplashViewController: UIViewController, AuthViewControllerDelegate {
@@ -40,18 +33,33 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
                 UIBlockingProgressHUD.dismiss()
                 switch result {
                 case .success(let profileData):
-                    NotificationCenter.default.post(name: .didFetchProfileData, object: nil, userInfo: ["profileData": profileData])
+                    self?.fetchAvatarUrl(username: profileData.username)
                     self?.presentGallery()
                 case .failure(let error):
-                    print("[ProfileService]: Ошибка загрузки профиля - \(error.localizedDescription)")
+                    print("[SplashViewController]: Ошибка загрузки профиля - \(error.localizedDescription)")
                     self?.presentAuth()
+                }
+            }
+        }
+    }
+    
+    private func fetchAvatarUrl(username: String) {
+        UIBlockingProgressHUD.show()
+        ProfileImageService.shared.fetchProfileImageURL(username: username) { [weak self] result in
+            DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
+                switch result {
+                case .success(let avatarData):
+                    print("[SplashViewController]: Аватарка загружена - \(avatarData)")
+                case .failure(let error):
+                    print("[SplashViewController]: Ошибка загрузки аватарки - \(error.localizedDescription)")
                 }
             }
         }
     }
 
     func didAuthenticate() {
-        print("User did authenticate, presenting gallery...")
+        print("[SplashViewController]: Информация - Пользователь аутентифицирован, отображение галереи.")
         presentGallery()
     }
     
@@ -62,19 +70,18 @@ final class SplashViewController: UIViewController, AuthViewControllerDelegate {
     }
     
     private func presentAuth() {
-        print("Attempting to present auth controller...")
+        print("[SplashViewController]: Информация - Попытка отобразить контроллер аутентификации.")
         DispatchQueue.main.async {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let authNavigationController = storyboard.instantiateViewController(withIdentifier: "AuthNavigationController") as? UINavigationController,
                let authViewController = authNavigationController.topViewController as? AuthViewController {
                 authViewController.delegate = self
-                print("Delegate is set: \(self)")
                 authNavigationController.modalPresentationStyle = .fullScreen
                 self.present(authNavigationController, animated: true, completion: {
-                    print("Auth controller presented")
+                    print("[SplashViewController]: Информация - Контроллер аутентификации представлен.")
                 })
             } else {
-                print("Could not instantiate AuthNavigationController from storyboard")
+                print("[SplashViewController]: Ошибка - Не удалось инстанциировать AuthNavigationController из storyboard.")
             }
         }
     }

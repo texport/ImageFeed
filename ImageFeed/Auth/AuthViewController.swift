@@ -24,47 +24,21 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        print("Preparing for segue with identifier: \(segue.identifier ?? "nil")")
+        print("[AuthViewController]: Информация - Подготовка к переходу с идентификатором: \(segue.identifier ?? "nil")")
         if segue.identifier == "showWebView", let webViewVC = segue.destination as? WebViewViewController {
             webViewVC.delegate = self
-            print("WebView delegate set: \(self)")
+            print("[AuthViewController]: Информация - Делегат WebView установлен: \(self)")
         }
     }
     
     @IBAction func enterButtonTapped(_ sender: Any) {
         if UIBlockingProgressHUD.isVisible {
-            print("Action blocked: progress indicator is visible")
+            print("[AuthViewController]: Блокировка действия - Индикатор прогресса видим")
         } else {
-            print("Performing segue to WebView")
+            print("[AuthViewController]: Информация - Выполнение перехода к WebView")
             performSegue(withIdentifier: "showWebView", sender: self)
         }
     }
-    
-//    func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-//        print("Auth delegate method called with code: \(code)")
-//        UIBlockingProgressHUD.show()  // Показать индикатор прогресса
-//
-//        OAuth2Service.shared.fetchOAuthToken(withCode: code) { [weak self] result in
-//            DispatchQueue.main.async {
-//                switch result {
-//                case .success(let token):
-//                    OAuth2TokenStorage.shared.token = token
-//
-//                    vc.dismiss(animated: false) {
-//                        print("WebView is closed.")
-//                        self?.dismiss(animated: true) {
-//                            print("AuthViewController is closed.")
-//                            self?.delegate?.didAuthenticate()
-//                        }
-//                    }
-//                case .failure(let error):
-//                    print("Ошибка получения токена: \(error)")
-//                    self?.showErrorAlert("Не удалось войти в систему", message: "Пожалуйста, попробуйте еще раз.")
-//                    UIBlockingProgressHUD.dismiss()  // Скрыть индикатор, если процесс не удался
-//                }
-//            }
-//        }
-//    }
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         UIBlockingProgressHUD.show()
@@ -102,6 +76,6 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     deinit {
-        print("AuthViewController is being deinitialized")
+        print("[AuthViewController]: Информация - AuthViewController деинициализируется")
     }
 }

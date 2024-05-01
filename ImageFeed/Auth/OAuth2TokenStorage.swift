@@ -9,10 +9,10 @@ import UIKit
 import SwiftKeychainWrapper
 
 final class OAuth2TokenStorage {
-    static let shared = OAuth2TokenStorage() // Singleton instance
+    static let shared = OAuth2TokenStorage()
     private let tokenKey = "oauthTokenKey"
 
-    private init() {}  // Private initializer to ensure singleton usage
+    private init() {}
 
     var token: String? {
         get {
