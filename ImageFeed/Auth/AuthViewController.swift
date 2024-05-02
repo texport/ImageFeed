@@ -1,10 +1,3 @@
-//
-//  AuthViewController.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 11.03.2024.
-//
-
 import UIKit
 
 final class AuthViewController: UIViewController, WebViewViewControllerDelegate {
@@ -13,11 +6,12 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     @IBOutlet weak var enterButton: UIButton!
     
     override func viewDidLoad() {
-        setupEnterButtonSetting()
+        super.viewDidLoad()
+        setupEnterButtonSettings()
         configureBackButton()
     }
     
-    private func setupEnterButtonSetting() {
+    private func setupEnterButtonSettings() {
         enterButton.layer.cornerRadius = 16
         enterButton.layer.masksToBounds = true
     }
@@ -30,31 +24,58 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let webView = segue.destination as? WebViewViewController {
-            webView.delegate = self
+        print("[AuthViewController]: Информация - Подготовка к переходу с идентификатором: \(segue.identifier ?? "nil")")
+        if segue.identifier == "showWebView", let webViewVC = segue.destination as? WebViewViewController {
+            webViewVC.delegate = self
+            print("[AuthViewController]: Информация - Делегат WebView установлен: \(self)")
+        }
+    }
+    
+    @IBAction func enterButtonTapped(_ sender: Any) {
+        if UIBlockingProgressHUD.isVisible {
+            print("[AuthViewController]: Блокировка действия - Индикатор прогресса видим")
+        } else {
+            print("[AuthViewController]: Информация - Выполнение перехода к WebView")
+            performSegue(withIdentifier: "showWebView", sender: self)
         }
     }
     
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        UIBlockingProgressHUD.show()
         OAuth2Service.shared.fetchOAuthToken(withCode: code) { [weak self] result in
             DispatchQueue.main.async {
+                UIBlockingProgressHUD.dismiss()
                 switch result {
                 case .success(let token):
-                    let tokenStorage = OAuth2TokenStorage()
-                    tokenStorage.token = token
-                    
+                    OAuth2TokenStorage.shared.token = token
                     self?.dismiss(animated: true) {
                         self?.delegate?.didAuthenticate()
                     }
                 case .failure(let error):
-                    print("Ошибка получения токена: \(error)")
-                    // Показать ошибку пользователю
+                    self?.showErrorAlert()
+                    print("[OAuth2Service]: Ошибка получения токена - \(error.localizedDescription)")
                 }
             }
         }
     }
 
+    private func showErrorAlert() {
+        let alert = UIAlertController(title: "Что-то пошло не так(", message: "Не удалось войти в систему", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         dismiss(animated: true)
+    }
+    
+    private func showErrorAlert(_ title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    deinit {
+        print("[AuthViewController]: Информация - AuthViewController деинициализируется")
     }
 }

@@ -78,14 +78,19 @@ final class ImagesListCell: UITableViewCell {
         customImageView.translatesAutoresizingMaskIntoConstraints = false
         customImageView.contentMode = .scaleAspectFill
         customImageView.image = UIImage(named: imageName)
-        
+        if customImageView.image == nil {
+            print("[ImagesListCell]: Ошибка загрузки - Изображение с именем \(imageName) не найдено.")
+        }
+
         customLabel.translatesAutoresizingMaskIntoConstraints = false
         customLabel.textColor = .white
         customLabel.text = labelText
-        
+
         customButton.translatesAutoresizingMaskIntoConstraints = false
         let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
         customButton.setImage(buttonImage, for: .normal)
+
+        print("[ImagesListCell]: Информация - Ячейка сконфигурирована с imageName: \(imageName), labelText: \(labelText), isLiked: \(isLiked)")
     }
 
     private func setupGradientForLabel() {
