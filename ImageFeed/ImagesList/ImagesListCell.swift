@@ -12,19 +12,35 @@ final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
     
     private let container = UIView()
-    private let customImageView = UIImageView()
+    let customImageView = UIImageView()
     private let labelBackgroundView = UIView()
     private let customLabel = UILabel()
-    private let customButton = UIButton(type: .custom)
+    let customButton = UIButton(type: .custom)
+    
+    var onLikeButtonTapped: ((Bool) -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.backgroundColor = UIColor(named: "YP Black")
         setupViews()
+        customButton.addTarget(self, action: #selector(likeButtonTapped), for: .touchUpInside)
     }
         
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        customImageView.kf.cancelDownloadTask()  // Отмена загрузки изображений в customImageView
+    }
+    
+    @objc private func likeButtonTapped() {
+        let isLikedNow = !customButton.isSelected
+        customButton.isSelected = isLikedNow
+        let buttonImage = isLikedNow ? UIImage(named: "Active") : UIImage(named: "No Active")
+        customButton.setImage(buttonImage, for: .normal)
+        onLikeButtonTapped?(isLikedNow)
     }
         
     private func setupViews() {
@@ -74,12 +90,18 @@ final class ImagesListCell: UITableViewCell {
         setupGradientForLabel()
     }
     
-    func configure(imageName: String, labelText: String, isLiked: Bool) {
+    func configure(imageURL: String, labelText: String, isLiked: Bool) {
         customImageView.translatesAutoresizingMaskIntoConstraints = false
         customImageView.contentMode = .scaleAspectFill
-        customImageView.image = UIImage(named: imageName)
+        customImageView.kf.setImage(
+            with: URL(string: imageURL),
+            placeholder: UIImage(named: "placeholder"),
+            options: [
+                .transition(.fade(1)),
+                .cacheOriginalImage
+            ])
         if customImageView.image == nil {
-            print("[ImagesListCell]: Ошибка загрузки - Изображение с именем \(imageName) не найдено.")
+            print("[ImagesListCell]: Ошибка загрузки - Изображение по URL \(imageURL) не найдено.")
         }
 
         customLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -87,10 +109,13 @@ final class ImagesListCell: UITableViewCell {
         customLabel.text = labelText
 
         customButton.translatesAutoresizingMaskIntoConstraints = false
+//        let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
+//        customButton.setImage(buttonImage, for: .normal)
+        customButton.isSelected = isLiked // Установка начального состояния кнопки
         let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
         customButton.setImage(buttonImage, for: .normal)
 
-        print("[ImagesListCell]: Информация - Ячейка сконфигурирована с imageName: \(imageName), labelText: \(labelText), isLiked: \(isLiked)")
+        print("[ImagesListCell]: Информация - Ячейка сконфигурирована с imageURL: \(imageURL), labelText: \(labelText), isLiked: \(isLiked)")
     }
 
     private func setupGradientForLabel() {
@@ -117,5 +142,10 @@ final class ImagesListCell: UITableViewCell {
         }
         
         labelBackgroundView.layer.sublayers?.first?.frame = labelBackgroundView.bounds
+    }
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        imageView?.isHidden = true  // Скрытие встроенного imageView
     }
 }
