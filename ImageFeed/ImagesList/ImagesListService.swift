@@ -37,9 +37,22 @@ final class ImagesListService {
         //request.addValue("Client-ID \(Constants.accessKey)", forHTTPHeaderField: "Authorization")
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
+//        let decoder = JSONDecoder()
+//        decoder.dateDecodingStrategy = .iso8601
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-
+        decoder.dateDecodingStrategy = .custom { decoder -> Date in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            guard let date = formatter.date(from: dateString) else {
+                let errorDescription = "Invalid date format for date string: \(dateString)"
+                print("[ImagesListService]: Ошибка декодирования даты - \(errorDescription)")
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: errorDescription)
+            }
+            return date
+        }
+        
         let task = URLSession.shared.decodableTask(with: request, decoder: decoder) { [weak self] (result: Result<[PhotoResult], Error>) in
             DispatchQueue.main.async {
                 self?.isFetching = false
@@ -49,6 +62,7 @@ final class ImagesListService {
                         Photo(id: $0.id,
                               size: CGSize(width: $0.width, height: $0.height),
                               createdAt: self?.dateFormatter.date(from: $0.createdAt),
+                              //createdAt: $0.createdAt,
                               welcomeDescription: $0.description,
                               thumbImageURL: $0.urls.thumb.absoluteString,
                               largeImageURL: $0.urls.full.absoluteString,
