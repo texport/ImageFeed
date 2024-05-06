@@ -84,18 +84,45 @@ final class ProfileViewController: UIViewController {
         print("[ProfileViewController]: Автарат обновлен")
     }
 
+//    @objc private func handleLogoutTap() {
+//        // Удаление токена из хранилища
+//        let tokenStorage = OAuth2TokenStorage.shared
+//        tokenStorage.token = nil
+//        print("[ProfileViewController]: Информация - Вы вышли из системы, токен удалён")
+//
+//        // Перезагрузка экрана входа через SplashViewController, созданного программно
+//        if let window = UIApplication.shared.windows.first {
+//            let splashViewController = SplashViewController() // Создание SplashViewController программно
+//            window.rootViewController = splashViewController
+//            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+//        }
+//    }
+    
     @objc private func handleLogoutTap() {
-        // Удаление токена из хранилища
-        let tokenStorage = OAuth2TokenStorage.shared
-        tokenStorage.token = nil
-        print("[ProfileViewController]: Информация - Вы вышли из системы, токен удалён")
+        let alert = UIAlertController(title: "Пока, пока!", message: "Вы уверены, что хотите выйти?", preferredStyle: .alert)
+        
+        // Добавляем кнопку "Да" (выход)
+        let yesAction = UIAlertAction(title: "Да", style: .default) { _ in
+            ProfileLogoutService.shared.logout()
+            // Удаление токена из хранилища OAuth2TokenStorage
+            let tokenStorage = OAuth2TokenStorage.shared
+            tokenStorage.token = nil
+            print("[ProfileViewController]: Информация - Вы вышли из системы, токен удалён")
 
-        // Перезагрузка экрана входа через SplashViewController, созданного программно
-        if let window = UIApplication.shared.windows.first {
-            let splashViewController = SplashViewController() // Создание SplashViewController программно
-            window.rootViewController = splashViewController
-            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+            // Перезагрузка экрана входа через SplashViewController, созданного программно
+            if let window = UIApplication.shared.windows.first {
+                let splashViewController = SplashViewController() // Создание SplashViewController программно
+                window.rootViewController = splashViewController
+                UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
+            }
         }
+        alert.addAction(yesAction)
+        
+        // Добавляем кнопку "Нет" (отмена)
+        let noAction = UIAlertAction(title: "Нет", style: .cancel, handler: nil)
+        alert.addAction(noAction)
+        
+        present(alert, animated: true, completion: nil)
     }
 
     deinit {

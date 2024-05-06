@@ -40,4 +40,7 @@ enum NetworkError: Error {
     case responseUnsuccessful(description: String)
     case invalidData(description: String)
     case jsonDecodingFailure(description: String)
+    case invalidURL(description: String)
+    case invalidToken(description: String) // Добавлен новый кейс для ошибки с токеном
+    case invalidResponse(description: String)
 }
