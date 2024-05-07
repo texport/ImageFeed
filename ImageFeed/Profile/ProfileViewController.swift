@@ -192,6 +192,7 @@ final class ProfileViewController: UIViewController {
     }
     
     private func startSetupExitButton() {
+        logoutButton.accessibilityIdentifier = "logout button"
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         logoutButton.setImage(UIImage(named: "Exit"), for: .normal)
         logoutButton.addTarget(self, action: #selector(handleLogoutTap), for: .touchUpInside) // Добавление обработчика нажатия

@@ -12,6 +12,7 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     }
     
     private func setupEnterButtonSettings() {
+        enterButton.accessibilityIdentifier = "Authenticate"
         enterButton.layer.cornerRadius = 16
         enterButton.layer.masksToBounds = true
     }
