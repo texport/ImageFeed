@@ -1,6 +1,6 @@
 import UIKit
 
-final class ImagesListService {
+class ImagesListService {
     static let didChangeNotification = Notification.Name("ImagesListServiceDidChange")
 
     private(set) var photos: [Photo] = []

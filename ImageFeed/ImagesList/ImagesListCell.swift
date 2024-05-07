@@ -8,7 +8,7 @@
 import UIKit
 
 @IBDesignable
-final class ImagesListCell: UITableViewCell {
+class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
     
     private let container = UIView()
