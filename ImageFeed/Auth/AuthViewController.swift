@@ -26,6 +26,10 @@ final class AuthViewController: UIViewController, WebViewViewControllerDelegate 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         print("[AuthViewController]: Информация - Подготовка к переходу с идентификатором: \(segue.identifier ?? "nil")")
         if segue.identifier == "showWebView", let webViewVC = segue.destination as? WebViewViewController {
+            let authHelper = AuthHelper()
+            let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+            webViewVC.presenter = webViewPresenter
+            webViewPresenter.view = webViewVC
             webViewVC.delegate = self
             print("[AuthViewController]: Информация - Делегат WebView установлен: \(self)")
         }
