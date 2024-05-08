@@ -8,7 +8,7 @@
 import UIKit
 
 @IBDesignable
-final class ImagesListCell: UITableViewCell {
+class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
     
     private let container = UIView()
@@ -108,9 +108,8 @@ final class ImagesListCell: UITableViewCell {
         customLabel.textColor = .white
         customLabel.text = labelText
 
+        customButton.accessibilityIdentifier = "likebutton"
         customButton.translatesAutoresizingMaskIntoConstraints = false
-//        let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
-//        customButton.setImage(buttonImage, for: .normal)
         customButton.isSelected = isLiked // Установка начального состояния кнопки
         let buttonImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
         customButton.setImage(buttonImage, for: .normal)

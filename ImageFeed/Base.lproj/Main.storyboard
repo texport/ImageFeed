@@ -96,6 +96,7 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Mvf-IZ-NPB">
                                 <rect key="frame" x="8" y="4" width="42" height="42"/>
+                                <accessibility key="accessibilityConfiguration" identifier="nav back button white"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="42" id="KWV-B7-hDe"/>
                                     <constraint firstAttribute="height" constant="42" id="Yjf-O5-OhU"/>
@@ -194,7 +195,7 @@
         <!--Web View View Controller-->
         <scene sceneID="Vg1-r8-0dl">
             <objects>
-                <viewController id="7N6-5d-afT" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="WebViewViewController" id="7N6-5d-afT" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="yvQ-gt-lvc">
                         <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -214,6 +215,9 @@
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="9XE-i9-Ymj"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <accessibility key="accessibilityConfiguration">
+                            <bool key="isElement" value="YES"/>
+                        </accessibility>
                         <constraints>
                             <constraint firstItem="9XE-i9-Ymj" firstAttribute="trailing" secondItem="Jaa-PQ-KJU" secondAttribute="trailing" id="DdL-6O-grr"/>
                             <constraint firstItem="Jaa-PQ-KJU" firstAttribute="leading" secondItem="9XE-i9-Ymj" secondAttribute="leading" id="DzR-Wg-Ecb"/>

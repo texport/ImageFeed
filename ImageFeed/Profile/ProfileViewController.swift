@@ -1,19 +1,15 @@
-//
-//  ProfileViewController.swift
-//  ImageFeed
-//
-//  Created by Sergey Ivanov on 20.02.2024.
-//
-
 import Kingfisher
 import UIKit
 
 final class ProfileViewController: UIViewController {
-    private let profileImageView = UIImageView()
-    private let nameLabel = UILabel()
-    private let usernameLabel = UILabel()
-    private let descriptionLabel = UILabel()
+    let profileImageView = UIImageView()
+    let nameLabel = UILabel()
+    let usernameLabel = UILabel()
+    let descriptionLabel = UILabel()
     private let logoutButton = UIButton()
+    
+    var notificationCenter: NotificationCenter = .default  // добавлено свойство
+    var lastImageURLUsedForLoading: URL? // добавлено еще одно свойство
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +40,7 @@ final class ProfileViewController: UIViewController {
         profileImageView.layer.masksToBounds = true
     }
     
-    private func updateProfileDetails() {
+    func updateProfileDetails() {
         guard let profileData = ProfileService.shared.profile else {
             print("[ProfileViewController]: Ошибка - Данные профиля не загружены")
             return
@@ -61,7 +57,7 @@ final class ProfileViewController: UIViewController {
         }
     }
 
-    @objc private func updateProfileData(_ notification: Notification) {
+    @objc func updateProfileData(_ notification: Notification) {
         if let profileData = notification.userInfo?["profileData"] as? ProfileUIData {
             nameLabel.text = profileData.name
             usernameLabel.text = profileData.loginName
@@ -69,36 +65,32 @@ final class ProfileViewController: UIViewController {
         }
     }
     
-    @objc private func updateAvatarUserUI(_ notification: Notification) {
+    @objc func updateAvatarUserUI(_ notification: Notification) {
         if let avatarURL = notification.userInfo?["avatarURL"] as? String {
             loadImageFromURL(avatarURL)
         }
     }
     
-    private func loadImageFromURL(_ urlString: String) {
+//    func loadImageFromURL(_ urlString: String) {
+//        guard let url = URL(string: urlString) else {
+//            print("[ProfileViewController]: Ошибка - Не удалось извлечь URL аватара из уведомления.")
+//            return
+//        }
+//        profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "Photo"), options: [.transition(.fade(0.2))])
+//        print("[ProfileViewController]: Автарат обновлен")
+//    }
+    
+    func loadImageFromURL(_ urlString: String) {
         guard let url = URL(string: urlString) else {
             print("[ProfileViewController]: Ошибка - Не удалось извлечь URL аватара из уведомления.")
             return
         }
+        lastImageURLUsedForLoading = url // Сохраняем URL для тестов
         profileImageView.kf.setImage(with: url, placeholder: UIImage(named: "Photo"), options: [.transition(.fade(0.2))])
         print("[ProfileViewController]: Автарат обновлен")
     }
-
-//    @objc private func handleLogoutTap() {
-//        // Удаление токена из хранилища
-//        let tokenStorage = OAuth2TokenStorage.shared
-//        tokenStorage.token = nil
-//        print("[ProfileViewController]: Информация - Вы вышли из системы, токен удалён")
-//
-//        // Перезагрузка экрана входа через SplashViewController, созданного программно
-//        if let window = UIApplication.shared.windows.first {
-//            let splashViewController = SplashViewController() // Создание SplashViewController программно
-//            window.rootViewController = splashViewController
-//            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil, completion: nil)
-//        }
-//    }
     
-    @objc private func handleLogoutTap() {
+    @objc func handleLogoutTap() {
         let alert = UIAlertController(title: "Пока, пока!", message: "Вы уверены, что хотите выйти?", preferredStyle: .alert)
         
         // Добавляем кнопку "Да" (выход)
@@ -192,6 +184,7 @@ final class ProfileViewController: UIViewController {
     }
     
     private func startSetupExitButton() {
+        logoutButton.accessibilityIdentifier = "logout button"
         logoutButton.translatesAutoresizingMaskIntoConstraints = false
         logoutButton.setImage(UIImage(named: "Exit"), for: .normal)
         logoutButton.addTarget(self, action: #selector(handleLogoutTap), for: .touchUpInside) // Добавление обработчика нажатия

@@ -1,10 +1,3 @@
-//
-//  ImageFeedTests.swift
-//  ImageFeedTests
-//
-//  Created by Sergey Ivanov on 02.05.2024.
-//
-
 import XCTest
 
 final class ImageFeedTests: XCTestCase {
